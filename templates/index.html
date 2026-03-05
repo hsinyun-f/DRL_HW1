@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRL HW1: Grid World Policy Evaluation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Grid World Policy Evaluation</h1>
+        <p class="subtitle">HW1-1 & HW1-2: Grid Map, Policy Display, and Value Evaluation</p>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="grid-size">Grid Size (n x n, 5-9):</label>
+                <input type="number" id="grid-size" min="5" max="9" value="5">
+                <button id="generate-grid" class="primary-btn">Generate Square</button>
+            </div>
+            
+            <div class="status-bar">
+                <span id="instruction">Enter a number and click Generate.</span>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="random-policy-btn" class="secondary-btn" disabled>Generate Random Policy</button>
+                <button id="evaluate-btn" class="accent-btn" disabled>Evaluate Policy</button>
+                <button id="reset-btn" class="danger-btn">Reset</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="grid-section">
+                <h3>Grid World</h3>
+                <div id="grid-container"></div>
+            </div>
+            
+            <div class="results-section" id="results" style="display: none;">
+                <div class="matrix-card">
+                    <h3>Value Matrix V(s)</h3>
+                    <div id="value-grid" class="result-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
