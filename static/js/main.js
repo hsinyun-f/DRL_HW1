@@ -1,4 +1,5 @@
 let n = 5;
+let currentN = 5; // The actual size of the grid currently on screen
 let startCell = null;
 let endCell = null;
 let obstacles = [];
@@ -21,6 +22,7 @@ function init() {
         const val = parseInt(document.getElementById('grid-size').value);
         if (val >= 5 && val <= 10) {
             n = val;
+            currentN = val; // Store the size of the grid we are about to create
             resetGrid();
         } else {
             alert('Please enter a number between 5 and 9.');
@@ -123,8 +125,8 @@ function generateRandomPolicy() {
         if (oldArrow) oldArrow.remove();
 
         // Check if terminal or obstacle
-        if ((r === startCell[0] && c === startCell[1]) ||
-            (r === endCell[0] && c === endCell[1]) ||
+        // Start cell (S) SHOULD have a policy action
+        if ((r === endCell[0] && c === endCell[1]) ||
             obstacles.some(obs => obs[0] === r && obs[1] === c)) {
             policy.push(-1); // No action for terminal/obstacle
             return;
@@ -163,12 +165,18 @@ function runPolicyEvaluation(gridSize, start, end, obstacles, policy, gamma = 0.
 
                 let v = V[r][c];
                 let actionIdx = policy[r * gridSize + c];
-                if (actionIdx === -1) {
-                    // Start cell or other non-acting cell
-                    newV[r][c] = 0 + gamma * V[r][c]; // Just stay put
+
+                // Robust check for invalid action index
+                if (actionIdx === undefined || actionIdx === null || actionIdx === -1) {
+                    // This happens for goal or obstacles (which are already skipped above), 
+                    // or if there's a policy data mismatch.
+                    newV[r][c] = V[r][c];
                     continue;
                 }
-                let [dr, dc] = actions[actionIdx];
+
+                let action = actions[actionIdx];
+                if (!action) continue; // Safety
+                let [dr, dc] = action;
 
                 let nextR = r + dr;
                 let nextC = c + dc;
@@ -209,7 +217,7 @@ async function evaluatePolicy() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-        const vMatrix = runPolicyEvaluation(n, startCell, endCell, obstacles, policy);
+        const vMatrix = runPolicyEvaluation(currentN, startCell, endCell, obstacles, policy);
         renderValueMatrix(vMatrix);
         instruction.textContent = 'Evaluation complete (computed locally)!';
     } catch (error) {
