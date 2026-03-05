@@ -1,4 +1,7 @@
-# DRL HW1 筆記與程式碼匯總
+# DRL HW1: Grid World & Policy Evaluation
+
+## 🌐 Demo Site
+[**Click here to view the Demo**](https://hsinyun-f.github.io/DRL_HW1/)
 
 ## 1. 專案說明 (Walkthrough)
 本作業開發了一個互動式的 Grid World 環境，並實作了策略評估演算法。
@@ -39,7 +42,7 @@ def policy_evaluation(grid_size, start, end, obstacles, policy, gamma=0.9, theta
     return V
 ```
 
-## 3. 對話紀錄總結
+## 3. 開發總結
 在本次對話中，我們從作業說明出發，完成了以下工作：
 1. **環境搭建**: 建立了 Flask 專案結構。
 2. **邏輯開發**: 實作了強化學習常用的策略評估算法。
