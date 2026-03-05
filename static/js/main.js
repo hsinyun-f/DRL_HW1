@@ -163,6 +163,11 @@ function runPolicyEvaluation(gridSize, start, end, obstacles, policy, gamma = 0.
 
                 let v = V[r][c];
                 let actionIdx = policy[r * gridSize + c];
+                if (actionIdx === -1) {
+                    // Start cell or other non-acting cell
+                    newV[r][c] = 0 + gamma * V[r][c]; // Just stay put
+                    continue;
+                }
                 let [dr, dc] = actions[actionIdx];
 
                 let nextR = r + dr;
