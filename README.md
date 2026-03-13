@@ -2,6 +2,9 @@
 
 ## 🚀 [**Live Demo: Click Here to Launch**](https://hsinyun-f.github.io/DRL_HW1/)
 
+## 🎬 Video Demo
+![Project Demo](demo.mp4)
+
 ---
 
 ## 1. Project Overview
