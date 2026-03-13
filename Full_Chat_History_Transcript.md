@@ -1,53 +1,65 @@
-# 對話紀錄：DRL HW1 開發協助 (精簡版)
+# Chat History: Deep Reinforcement Learning HW1 Development
 
-**日期**: 2026-03-06
-**參與者**: USER & AI Assistant (Antigravity)
-
----
-
-### [對話開始]
-
-**USER**: 可以依照這個作業的說明 完成這個作業並解釋嗎？ (附帶作業圖片：HW1-1 網格地圖, HW1-2 策略評估)
-
-**AI**: (分析需求後回應) 沒問題！我會為您建立一個 Flask Web App。
-*   **HW1-1**: 實作動態網格 (5-9)、起點/終點/障礙物互動設定。
-*   **HW1-2**: 實作隨機策略顯示與 Iterative Policy Evaluation 算法。
-
-(AI 隨後建立並撰寫了以下檔案：`app.py`, `index.html`, `style.css`, `main.js`)
-
-**AI**: 我已經完成了 DRL HW1 的開發。包含：
-1. **網格互動控制**: 綠色/起點、紅色/終點、灰色/障礙物。
-2. **策略評估演算法**: 使用 numpy 進行價值迭代。
-3. **前端視覺化**: 點擊 Evaluate 後會顯示精確的 Value Matrix。
+**Date**: March 2026
+**Participants**: USER & AI Assistant (Antigravity)
 
 ---
 
-**USER**: (執行環境檢查：`conda activate myenv` 並運行專案)
+### [Session 1: Initial Implementation]
+
+**USER**: Can you complete this assignment and explain it based on these instructions? (Attached images: HW1-1 Grid Map, HW1-2 Policy Evaluation)
+
+**AI**: I will build a Flask-based web application for you.
+*   **HW1-1**: Implemented dynamic grid generation (5-9), interactive start/end/obstacle placement.
+*   **HW1-2**: Implemented random policy display and the Iterative Policy Evaluation algorithm.
+*   **Result**: Created a modern web interface with a backend computation engine.
 
 ---
 
-### [技術細節彙整]
+### [Session 2: Migration to GitHub Pages]
 
-#### 核心 Policy Evaluation 實作邏輯 (app.py):
-```python
-while True:
-    delta = 0
-    new_V = np.copy(V)
-    for r in range(n):
-        for c in range(n):
-            # ... 狀態跳過 (終點與障礙物)
-            v = V[r,c]
-            # ... 計算動作後的 Reward 與 Next State
-            new_V[r, c] = reward + gamma * V[next_r, next_c]
-            delta = max(delta, abs(v - new_V[r, c]))
-    V = new_V
-    if delta < 0.001: break
+**USER**: Push everything to GitHub: https://github.com/hsinyun-f/DRL_HW1.git
+
+**AI**: Done. I've initialized the repository and pushed the code.
+
+**USER**: Why is the demo link not working?
+
+**AI**: GitHub Pages only supports static sites. I need to port the Python logic (Policy Evaluation) to JavaScript so it can run directly in the browser.
+*   **Action**: Rewrote the mathematical logic in JavaScript and restructured the project for static hosting.
+
+---
+
+### [Session 3: Value Iteration & Optimization]
+
+**USER**: Now implement "Value Iteration" to find the best path. (Attached Algorithm 2 image)
+
+**AI**: I have integrated the Value Iteration algorithm.
+*   **Feature**: It now calculates the optimal policy and highlights the "Best Path" in yellow on the grid.
+*   **Improvement**: Added unique cell numbering (1 to n²) to match the assignment sample.
+*   **UI Update**: Refined the visual presentation of "S" (Start) and "E" (End) labels.
+
+---
+
+### [Technical Summary]
+
+#### Core Algorithm: Value Iteration (JS)
+```javascript
+for (let iter = 0; iter < 1000; iter++) {
+    let delta = 0;
+    for (let s of states) {
+        let v = V[s];
+        V[s] = Math.max(...actions.map(a => reward + gamma * V[nextState(s,a)]));
+        delta = Math.max(delta, Math.abs(v - V[s]));
+    }
+    if (delta < theta) break;
+}
 ```
 
-#### 前端交互機 (main.js):
-- 第一下點擊: 設定 `startCell` (Green)
-- 第二下點擊: 設定 `endCell` (Red)
-- 後續點擊: 設定 `obstacles` (Gray)
+#### Final Project Features:
+1.  **Grid Design**: Full mouse interaction for map setup.
+2.  **Algorithm 1**: Policy Evaluation for a given random policy.
+3.  **Algorithm 2**: Value Iteration for optimal pathfinding.
+4.  **Deployment**: Ready for instant access via GitHub Pages.
 
 ---
-[對話結束]
+[End of Transcript]
