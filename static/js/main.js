@@ -175,8 +175,8 @@ function onRandomPolicy() {
     setMsg('Random policy generated. Click "Evaluate Policy" to compute V(s).');
 }
 
-function onEvaluate() {
-    setMsg('Evaluating…');
+async function onEvaluate() {
+    setMsg('Evaluating (via Python Backend)…');
     const n = gridN;
 
     if (!startCell || !endCell || policy.length !== n * n) {
@@ -185,32 +185,48 @@ function onEvaluate() {
     }
 
     try {
-        const matrixV = computePolicyEval(n, endCell, obstacles, policy);
-        renderValues(matrixV);
-        setMsg('Policy Evaluation complete!');
+        const response = await fetch('/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ n, start: startCell, end: endCell, obstacles, policy })
+        });
+        const data = await response.json();
+        renderValues(data.v_matrix);
+        setMsg('Policy Evaluation complete (Python)!');
     } catch (e) {
-        console.error(e);
-        setMsg('Evaluation failed: ' + e.message);
+        // Fallback to local JS if backend fails
+        console.warn('Backend failed, falling back to local JS:', e);
+        try {
+            const matrixV = computePolicyEval(n, endCell, obstacles, policy);
+            renderValues(matrixV);
+            setMsg('Policy Evaluation complete (JS Fallback)!');
+        } catch (localErr) {
+            setMsg('Evaluation failed: ' + localErr.message);
+        }
     }
 }
 
-function onValueIteration() {
-    setMsg('Running Value Iteration…');
+async function onValueIteration() {
+    setMsg('Running Value Iteration (via Python Backend)…');
     const n = gridN;
 
-    // Remove path highlights and arrows
     elGrid.querySelectorAll('.cell').forEach(c => c.classList.remove('path'));
     elGrid.querySelectorAll('.arrow').forEach(a => a.remove());
 
     try {
-        const result = runValueIteration(n, endCell, obstacles);
-        renderValues(result.V);
+        const response = await fetch('/iterate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ n, start: startCell, end: endCell, obstacles })
+        });
+        const data = await response.json();
+        renderValues(data.v_matrix);
 
-        // Show the optimal actions (arrows) on the grid
+        const bestPolicy = data.best_policy;
         for (let r = 0; r < n; r++) {
             for (let c = 0; c < n; c++) {
                 const idx = r * n + c;
-                const a = result.policy[idx];
+                const a = bestPolicy[idx];
                 if (a !== -1) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
                     const span = document.createElement('span');
@@ -220,14 +236,31 @@ function onValueIteration() {
                 }
             }
         }
-
-        // Draw the best path from start to end
-        drawBestPath(n, startCell, endCell, obstacles, result.policy);
-
-        setMsg('Value Iteration complete! Optimal path highlighted.');
+        drawBestPath(n, startCell, endCell, obstacles, bestPolicy);
+        setMsg('Value Iteration complete (Python)! Path highlighted.');
     } catch (e) {
-        console.error(e);
-        setMsg('Value Iteration failed: ' + e.message);
+        console.warn('Backend failed, falling back to local JS:', e);
+        try {
+            const result = runValueIteration(n, endCell, obstacles);
+            renderValues(result.V);
+            for (let r = 0; r < n; r++) {
+                for (let c = 0; c < n; c++) {
+                    const idx = r * n + c;
+                    const a = result.policy[idx];
+                    if (a !== -1) {
+                        const cell = document.getElementById(`cell-${r}-${c}`);
+                        const span = document.createElement('span');
+                        span.className = 'arrow';
+                        span.textContent = ARROWS[a];
+                        cell.appendChild(span);
+                    }
+                }
+            }
+            drawBestPath(n, startCell, endCell, obstacles, result.policy);
+            setMsg('Value Iteration complete (JS Fallback)!');
+        } catch (localErr) {
+            setMsg('Value Iteration failed: ' + localErr.message);
+        }
     }
 }
 

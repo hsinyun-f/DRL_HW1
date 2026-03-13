@@ -74,6 +74,62 @@ def policy_evaluation(grid_size, start, end, obstacles, policy, gamma=0.9, theta
             
     return V.tolist()
 
+def value_iteration(grid_size, goal, obstacles, gamma=0.9, theta=0.0001):
+    n = grid_size
+    V = np.zeros((n, n))
+    actions = [(-1, 0), (1, 0), (0, -1), (0, 1)] # Up, Down, Left, Right
+    
+    # Value Iteration Loop
+    while True:
+        delta = 0
+        new_V = np.copy(V)
+        for r in range(n):
+            for c in range(n):
+                if [r, c] == goal or [r, c] in obstacles:
+                    continue
+                
+                v = V[r, c]
+                q_values = []
+                for dr, dc in actions:
+                    nr, nc = r + dr, c + dc
+                    if nr < 0 or nr >= n or nc < 0 or nc >= n or [nr, nc] in obstacles:
+                        nr, nc = r, c
+                        reward = -1.0
+                    elif [nr, nc] == goal:
+                        reward = 10.0
+                    else:
+                        reward = -0.1
+                    q_values.append(reward + gamma * V[nr, nc])
+                
+                new_V[r, c] = max(q_values)
+                delta = max(delta, abs(v - new_V[r, c]))
+        V = new_V
+        if delta < theta:
+            break
+            
+    # Extract Optimal Policy
+    best_policy = [-1] * (n * n)
+    for r in range(n):
+        for c in range(n):
+            if [r, c] == goal or [r, c] in obstacles:
+                continue
+            
+            q_values = []
+            for a_idx, (dr, dc) in enumerate(actions):
+                nr, nc = r + dr, c + dc
+                if nr < 0 or nr >= n or nc < 0 or nc >= n or [nr, nc] in obstacles:
+                    nr, nc = r, c
+                    reward = -1.0
+                elif [nr, nc] == goal:
+                    reward = 10.0
+                else:
+                    reward = -0.1
+                q_values.append(reward + gamma * V[nr, nc])
+            
+            best_policy[r * n + c] = int(np.argmax(q_values))
+            
+    return V.tolist(), best_policy
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -89,6 +145,19 @@ def evaluate():
     
     v_matrix = policy_evaluation(n, start, end, obstacles, policy)
     return jsonify({'v_matrix': v_matrix})
+
+@app.route('/iterate', methods=['POST'])
+def iterate():
+    data = request.json
+    n = data['n']
+    goal = data['end']
+    obstacles = data['obstacles']
+    
+    v_matrix, best_policy = value_iteration(n, goal, obstacles)
+    return jsonify({
+        'v_matrix': v_matrix,
+        'best_policy': best_policy
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
