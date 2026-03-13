@@ -65,6 +65,12 @@ function buildGrid(n) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.id = `cell-${r}-${c}`;
+
+            const numSpan = document.createElement('span');
+            numSpan.className = 'cell-index';
+            numSpan.textContent = r * n + c + 1;
+            cell.appendChild(numSpan);
+
             cell.addEventListener('click', () => onCellClick(r, c));
             elGrid.appendChild(cell);
         }
@@ -92,14 +98,24 @@ function onCellClick(r, c) {
     if (phase === 'start') {
         startCell = [r, c];
         cell.classList.add('start');
-        cell.textContent = 'S';
+
+        const label = document.createElement('span');
+        label.className = 'cell-label';
+        label.textContent = 'S';
+        cell.appendChild(label);
+
         phase = 'end';
         setMsg('Click to set the END cell (Red)');
 
     } else if (phase === 'end') {
         endCell = [r, c];
         cell.classList.add('end');
-        cell.textContent = 'E';
+
+        const label = document.createElement('span');
+        label.className = 'cell-label';
+        label.textContent = 'E';
+        cell.appendChild(label);
+
         phase = 'obstacle';
         const maxObs = gridN - 2;
         setMsg(`Set up to ${maxObs} obstacles (Gray). Remaining: ${maxObs - obstacles.length}`);
