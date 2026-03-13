@@ -19,6 +19,7 @@ const elSizeInput = document.getElementById('grid-size');
 const elGenBtn = document.getElementById('generate-grid');
 const elPolicyBtn = document.getElementById('random-policy-btn');
 const elEvalBtn = document.getElementById('evaluate-btn');
+const elValueIterationBtn = document.getElementById('value-iteration-btn');
 const elResetBtn = document.getElementById('reset-btn');
 const elMsg = document.getElementById('instruction');
 const elResults = document.getElementById('results');
@@ -28,6 +29,7 @@ function init() {
     elGenBtn.addEventListener('click', onGenerate);
     elPolicyBtn.addEventListener('click', onRandomPolicy);
     elEvalBtn.addEventListener('click', onEvaluate);
+    elValueIterationBtn.addEventListener('click', onValueIteration);
     elResetBtn.addEventListener('click', onReset);
     buildGrid(5);
 }
@@ -51,6 +53,7 @@ function buildGrid(n) {
 
     elPolicyBtn.disabled = true;
     elEvalBtn.disabled = true;
+    elValueIterationBtn.disabled = true;
     elResults.style.display = 'none';
 
     // Build DOM grid
@@ -110,7 +113,8 @@ function onCellClick(r, c) {
         if (remaining <= 0) {
             phase = 'done';
             elPolicyBtn.disabled = false;
-            setMsg('Ready! Click "Generate Random Policy".');
+            elValueIterationBtn.disabled = false;
+            setMsg('Ready! Click "Generate Random Policy" or "Value Iteration".');
         } else {
             setMsg(`Set up to ${maxObs} obstacles (Gray). Remaining: ${remaining}`);
         }
@@ -121,8 +125,9 @@ function onRandomPolicy() {
     const n = gridN;
     policy = new Array(n * n).fill(-1);
 
-    // Remove old arrows from all cells
+    // Remove old arrows and path highlights
     elGrid.querySelectorAll('.arrow').forEach(a => a.remove());
+    elGrid.querySelectorAll('.cell').forEach(c => c.classList.remove('path'));
 
     for (let r = 0; r < n; r++) {
         for (let c = 0; c < n; c++) {
@@ -158,28 +163,167 @@ function onEvaluate() {
     setMsg('Evaluating…');
     const n = gridN;
 
-    // Validate we have everything
     if (!startCell || !endCell || policy.length !== n * n) {
-        setMsg('Error: missing start/end or policy. Please reset and try again.');
+        setMsg('Error: missing start/end or policy.');
         return;
     }
 
-    // Run policy evaluation
     try {
-        const V = policyEval(n, endCell, obstacles, policy);
-        renderValues(V);
-        setMsg('Evaluation complete!');
+        const matrixV = computePolicyEval(n, endCell, obstacles, policy);
+        renderValues(matrixV);
+        setMsg('Policy Evaluation complete!');
     } catch (e) {
         console.error(e);
         setMsg('Evaluation failed: ' + e.message);
     }
 }
 
+function onValueIteration() {
+    setMsg('Running Value Iteration…');
+    const n = gridN;
+
+    // Remove path highlights and arrows
+    elGrid.querySelectorAll('.cell').forEach(c => c.classList.remove('path'));
+    elGrid.querySelectorAll('.arrow').forEach(a => a.remove());
+
+    try {
+        const result = runValueIteration(n, endCell, obstacles);
+        renderValues(result.V);
+
+        // Show the optimal actions (arrows) on the grid
+        for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+                const idx = r * n + c;
+                const a = result.policy[idx];
+                if (a !== -1) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    const span = document.createElement('span');
+                    span.className = 'arrow';
+                    span.textContent = ARROWS[a];
+                    cell.appendChild(span);
+                }
+            }
+        }
+
+        // Draw the best path from start to end
+        drawBestPath(n, startCell, endCell, obstacles, result.policy);
+
+        setMsg('Value Iteration complete! Optimal path highlighted.');
+    } catch (e) {
+        console.error(e);
+        setMsg('Value Iteration failed: ' + e.message);
+    }
+}
+
+// ── Algorithm 2: Value Iteration ─────────────────────────────────────────────
+function runValueIteration(n, goal, obstacles, gamma = 0.9, theta = 1e-4) {
+    let V = new Float64Array(n * n).fill(0);
+    const isObstacle = new Uint8Array(n * n);
+    obstacles.forEach(o => { isObstacle[o[0] * n + o[1]] = 1; });
+    const goalIdx = goal[0] * n + goal[1];
+
+    // Iterative update
+    for (let iter = 0; iter < 1000; iter++) {
+        let delta = 0;
+        let nextV = new Float64Array(n * n);
+
+        for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+                const idx = r * n + c;
+                if (idx === goalIdx || isObstacle[idx]) {
+                    nextV[idx] = 0; // Terminal/Obstacle values stay 0
+                    continue;
+                }
+
+                let maxVal = -Infinity;
+                for (let a = 0; a < 4; a++) {
+                    let nr = r + DR[a];
+                    let nc = c + DC[a];
+                    let reward;
+
+                    if (nr < 0 || nr >= n || nc < 0 || nc >= n || isObstacle[nr * n + nc]) {
+                        nr = r; nc = c;
+                        reward = -1.0;
+                    } else if (nr === goal[0] && nc === goal[1]) {
+                        reward = 10.0;
+                    } else {
+                        reward = -0.1;
+                    }
+                    const val = reward + gamma * V[nr * n + nc];
+                    if (val > maxVal) maxVal = val;
+                }
+                nextV[idx] = maxVal;
+                delta = Math.max(delta, Math.abs(V[idx] - nextV[idx]));
+            }
+        }
+        V = nextV;
+        if (delta < theta) break;
+    }
+
+    // Extract deterministic policy
+    const bestPolicy = new Array(n * n).fill(-1);
+    for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+            const idx = r * n + c;
+            if (idx === goalIdx || isObstacle[idx]) continue;
+
+            let maxVal = -Infinity;
+            let bestA = 0;
+            for (let a = 0; a < 4; a++) {
+                let nr = r + DR[a], nc = c + DC[a];
+                let reward;
+                if (nr < 0 || nr >= n || nc < 0 || nc >= n || isObstacle[nr * n + nc]) {
+                    nr = r; nc = c; reward = -1.0;
+                } else if (nr === goal[0] && nc === goal[1]) {
+                    reward = 10.0;
+                } else {
+                    reward = -0.1;
+                }
+                const val = reward + gamma * V[nr * n + nc];
+                if (val > maxVal) { maxVal = val; bestA = a; }
+            }
+            bestPolicy[idx] = bestA;
+        }
+    }
+
+    // Convert flat V to 2D for rendering
+    const V2D = [];
+    for (let r = 0; r < n; r++) V2D.push(Array.from(V.subarray(r * n, r * n + n)));
+    return { V: V2D, policy: bestPolicy };
+}
+
+function drawBestPath(n, start, goal, obstacles, bestPolicy) {
+    let curR = start[0], curC = start[1];
+    const goalIdx = goal[0] * n + goal[1];
+    const visited = new Set();
+
+    for (let step = 0; step < n * n; step++) {
+        const idx = curR * n + curC;
+        if (idx === goalIdx) break;
+        if (visited.has(idx)) break; // Cycle protection
+        visited.add(idx);
+
+        const cell = document.getElementById(`cell-${curR}-${curC}`);
+        cell.classList.add('path');
+
+        const a = bestPolicy[idx];
+        if (a === -1) break;
+
+        let nr = curR + DR[a], nc = curC + DC[a];
+        // Boundary/obstacle check (though policy should avoid them if possible)
+        const isObs = obstacles.some(o => o[0] === nr && o[1] === nc);
+        if (nr < 0 || nr >= n || nc < 0 || nc >= n || isObs) {
+            break; // Stuck
+        }
+        curR = nr; curC = nc;
+    }
+}
+
 // ── Policy Evaluation (pure JS) ───────────────────────────────────────────────
-function policyEval(n, goal, obstacles, policy, gamma = 0.9, theta = 1e-4) {
+function computePolicyEval(n, goal, obstacles, policy, gamma = 0.9, theta = 1e-4) {
     // V stored as flat Float64Array for speed
     let V = new Float64Array(n * n);
-    let newV = new Float64Array(n * n);
+    let nextV = new Float64Array(n * n);
 
     const isObstacle = new Uint8Array(n * n);
     obstacles.forEach(o => { isObstacle[o[0] * n + o[1]] = 1; });
@@ -195,13 +339,13 @@ function policyEval(n, goal, obstacles, policy, gamma = 0.9, theta = 1e-4) {
 
                 // Terminal states: copy current value unchanged
                 if (idx === goalIdx || isObstacle[idx]) {
-                    newV[idx] = V[idx];
+                    nextV[idx] = V[idx];
                     continue;
                 }
 
                 const a = policy[idx];
                 if (a === -1 || a === undefined || a === null) {
-                    newV[idx] = V[idx];
+                    nextV[idx] = V[idx];
                     continue;
                 }
 
@@ -227,13 +371,13 @@ function policyEval(n, goal, obstacles, policy, gamma = 0.9, theta = 1e-4) {
                 }
 
                 const old = V[idx];
-                newV[idx] = reward + gamma * V[nr * n + nc];
-                delta = Math.max(delta, Math.abs(old - newV[idx]));
+                nextV[idx] = reward + gamma * V[nr * n + nc];
+                delta = Math.max(delta, Math.abs(old - nextV[idx]));
             }
         }
 
         // Swap buffers
-        const tmp = V; V = newV; newV = tmp;
+        V.set(nextV);
         if (delta < theta) break;
     }
 

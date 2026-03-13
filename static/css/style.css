@@ -99,14 +99,29 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.primary-btn { background: var(--primary); color: white; }
-.secondary-btn { background: var(--secondary); color: white; }
-.accent-btn { background: var(--accent); color: white; }
-.danger-btn { background: #fee2e2; color: #b91c1c; }
+.primary-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.secondary-btn {
+    background: var(--secondary);
+    color: white;
+}
+
+.accent-btn {
+    background: var(--accent);
+    color: white;
+}
+
+.danger-btn {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
 button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .main-content {
@@ -116,7 +131,8 @@ button:hover:not(:disabled) {
     justify-content: center;
 }
 
-#grid-container, .result-grid {
+#grid-container,
+.result-grid {
     display: grid;
     gap: 4px;
     background: #cbd5e1;
@@ -141,13 +157,29 @@ button:hover:not(:disabled) {
     position: relative;
 }
 
-.cell.start { background: var(--start); color: white; }
-.cell.end { background: var(--end); color: white; }
-.cell.obstacle { background: var(--obstacle); }
+.cell.start {
+    background: var(--start);
+    color: white;
+}
+
+.cell.end {
+    background: var(--end);
+    color: white;
+}
+
+.cell.obstacle {
+    background: var(--obstacle);
+}
+
+.cell.path {
+    background: #fbbf24 !important;
+    box-shadow: inset 0 0 0 4px #d97706;
+    color: white;
+}
 
 .cell .arrow {
     font-size: 2rem;
-    color: rgba(0,0,0,0.4);
+    color: rgba(0, 0, 0, 0.4);
 }
 
 .value-cell {
