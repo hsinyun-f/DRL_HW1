@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat History: DRL HW1 Development</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        h3 {
+            color: #16a085;
+        }
+
+        .session {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 20px;
+        }
+
+        code {
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .user-request {
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        .ai-response {
+            color: #2c3e50;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #ddd;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Project Report: Deep Reinforcement Learning HW1</h1>
+    <p><strong>Date:</strong> March 2026</p>
+    <p><strong>Developed by:</strong> USER & Antigravity (AI Assistant)</p>
+
+    <hr>
+
+    <h2>Session 1: Initial Grid World Implementation</h2>
+    <div class="session">
+        <p class="user-request">USER Objective: Complete HW1-1 and HW1-2 based on assignment instructions.</p>
+        <div class="ai-response">
+            <p><strong>Implementation Summary:</strong></p>
+            <ul>
+                <li>Created a <strong>Flask</strong> web application as the backend.</li>
+                <li><strong>HW1-1:</strong> Developed an interactive grid (5x5 to 9x9) where users can set Start (S),
+                    End (E), and Obstacles via mouse clicks.</li>
+                <li><strong>HW1-2:</strong> Implemented a "Random Policy" generator and the <strong>Iterative Policy
+                        Evaluation</strong> algorithm to compute state values $V(s)$.</li>
+                <li>Used a modern CSS UI with smooth animations and responsive layout.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Session 2: GitHub Deployment & Local JS Optimization</h2>
+    <div class="session">
+        <p class="user-request">USER Objective: Push to GitHub and fix the failing Live Demo.</p>
+        <div class="ai-response">
+            <p><strong>Problem:</strong> GitHub Pages only support static sites, but the initial version relied on a
+                Python/Flask backend.</p>
+            <p><strong>Solution:</strong> Ported the entire reinforcement learning logic from Python to
+                <strong>Client-side JavaScript</strong>. This allowed the application to run directly in the browser
+                without any server requirements.</p>
+        </div>
+    </div>
+
+    <h2>Session 3: Value Iteration & Optimal Path Finding</h2>
+    <div class="session">
+        <p class="user-request">USER Objective: Implement Value Iteration and illustrate the best path.</p>
+        <div class="ai-response">
+            <h3>Key Features Added:</h3>
+            <ul>
+                <li><strong>Value Iteration (Algorithm 2):</strong> Implemented the Bellman Optimality Equation to solve
+                    for the optimal value function.</li>
+                <li><strong>Best Path Highlighting:</strong> Added a feature that automatically traces and highlights
+                    the optimal route from Start to End in yellow.</li>
+                <li><strong>Cell Numbering:</strong> Added small indices (1, 2, 3...) to each grid cell for better
+                    correspondence with mathematical notations.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Session 4: Hybrid Architecture (Python + JS)</h2>
+    <div class="session">
+        <p class="user-request">USER Objective: Restore Flask backend for local use while keeping the demo site
+            functional.</p>
+        <div class="ai-response">
+            <p>Modified the architecture to be <strong>Hybrid</strong>:
+            <ul>
+                <li>If run locally via <code>app.py</code>, it uses the <strong>Python/Flask API</strong> for heavy
+                    computation.</li>
+                <li>If run on GitHub Pages, it gracefully falls back to <strong>JavaScript computation</strong>.</li>
+            </ul>
+            </p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>Core Algorithm Snippet (Python Value Iteration)</h2>
+    <pre>
+while True:
+    delta = 0
+    new_V = np.copy(V)
+    for r in range(n):
+        for c in range(n):
+            if [r, c] == goal or [r, c] in obstacles: continue
+            q_values = [reward + gamma * V[next_s] for next_s in actions]
+            new_V[r, c] = max(q_values)
+            delta = max(delta, abs(V[r, c] - new_V[r, c]))
+    V = new_V
+    if delta < theta: break
+    </pre>
+
+    <div style="text-align: center; margin-top: 50px; font-style: italic; color: #888;">
+        End of Project History Report
+    </div>
+
+</body>
+
+</html>

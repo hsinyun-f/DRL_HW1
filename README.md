@@ -1,7 +1,8 @@
 # DRL HW1: Grid World & Policy Algorithms
 
-## 🌐 Live Demo
-[**View the Interactive Demo here**](https://hsinyun-f.github.io/DRL_HW1/)
+## 🚀 [**Live Demo: Click Here to Launch**](https://hsinyun-f.github.io/DRL_HW1/)
+
+---
 
 ## 1. Project Overview
 This project is an interactive **Grid World** simulation developed for Deep Reinforcement Learning Homework 1. It allows users to design a grid environment and visualize fundamental RL algorithms: **Policy Evaluation** and **Value Iteration**.
